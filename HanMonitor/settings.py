@@ -14,7 +14,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-from config import MysqlConfig
+from config import MysqlConfig, RedisConfig
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -131,3 +131,17 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Redis config
+REDIS_CONN = {
+    'HOST': RedisConfig["HOST"],
+    'PORT': RedisConfig["PORT"],
+    'DB': RedisConfig["DB"],
+}
+
+STATUS_DATA_OPTIMIZATION = {
+    'latest': [0, 20],  # 0 存储真实数据,600个点
+    '10mins': [600, 4320],  # 1m, 每600s进行一次优化，存最大600个点
+    '30mins': [1800, 4320],  # 3m
+    '60mins': [3600, 8760],  # 365days
+}
