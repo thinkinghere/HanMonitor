@@ -1,22 +1,25 @@
-#_*_coding:utf-8_*_
-__author__ = 'Alex Li'
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
-from linux import sysinfo,load,cpu_mac,cpu,memory,network,host_alive
-
+from linux import sysinfo, load, cpu_mac, cpu, memory, network, host_alive
 
 
 def LinuxCpuPlugin():
     return cpu.monitor()
 
+
 def host_alive_check():
     return host_alive.monitor()
 
+
 def GetMacCPU():
-    #return cpu.monitor()
+    # return cpu.monitor()
     return cpu_mac.monitor()
+
 
 def LinuxNetworkPlugin():
     return network.monitor()
+
 
 def LinuxMemoryPlugin():
     return memory.monitor()
@@ -24,3 +27,8 @@ def LinuxMemoryPlugin():
 
 def get_linux_load():
     return load.monitor()
+
+
+if __name__ == '__main__':
+    print LinuxCpuPlugin()
+    print host_alive_check()
