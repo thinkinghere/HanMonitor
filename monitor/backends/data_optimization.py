@@ -24,13 +24,13 @@ class DataStore(object):
         self.service_name = service_name
         self.data = data
         self.redis_conn_obj = redis_obj
-        self.process_and_save()
+        self.process_and_save()  # 实例化类时候执行process_and_save
 
     def get_data_slice(self, lastest_data_key, optimization_interval):
-        '''
+        """
         :param optimization_interval: e.g: 600, means get latest 10 mins real data from redis
         :return:
-        '''
+        """
         all_real_data = self.redis_conn_obj.lrange(lastest_data_key, 1, -1)
         # print("get data range of:",lastest_data_key,optimization_interval)
         # print("get data range of:",all_real_data[-1])
@@ -51,16 +51,17 @@ class DataStore(object):
         return data_set
 
     def process_and_save(self):
-        '''
+        """
         processing data and save into redis
         :return:
-        '''
+        """
         print("\033[42;1m---service data-----------------------\033[0m")
         # print( self.client_id,self.service_name,self.data)
         if self.data['status'] == 0:  # service data is valid
             for key, data_series_val in settings.STATUS_DATA_OPTIMIZATION.items():
-                data_series_optimize_interval, max_data_point = data_series_val
-                data_series_key_in_redis = "StatusData_%s_%s_%s" % (self.client_id, self.service_name, key)
+                # data_series_optimize_interval 是时间间隔， max_data_point 是最大存储的点的数量
+                data_series_optimize_interval, max_data_point = data_series_val  # 'latest': [0, 20]
+                data_series_key_in_redis = "StatusData_%s_%s_%s" % (self.client_id, self.service_name, key)  # 定义存储到Redis中的数据的格式
                 # print(data_series_key_in_redis,data_series_val)
                 last_point_from_redis = self.redis_conn_obj.lrange(data_series_key_in_redis, -1, -1)
                 if not last_point_from_redis:  # this key is not exist in redis
@@ -99,20 +100,20 @@ class DataStore(object):
             raise ValueError
 
     def save_optimized_data(self, data_series_key_in_redis, optimized_data):
-        '''
+        """
         save the optimized data into db
         :param optimized_data:
         :return:
-        '''
+        """
         self.redis_conn_obj.rpush(data_series_key_in_redis, json.dumps([optimized_data, time.time()]))
 
     def get_optimized_data(self, data_set_key, raw_service_data):
-        '''
+        """
         calculate out avg,max,min,mid value from raw service data set
         :param data_set_key: where the optimized data needed to save to in redis db
         :param raw_service_data: raw service data data list
         :return:
-        '''
+        """
         # index_init =[avg,max,min,mid]
         print("get_optimized_data:", raw_service_data[0])
         service_data_keys = raw_service_data[0][0].keys()  # [iowait, idle,system...]
@@ -182,44 +183,44 @@ class DataStore(object):
         return optimized_dic
 
     def get_average(self, data_set):
-        '''
+        """
         calc the avg value of data set
         :param data_set:
         :return:
-        '''
+        """
         if len(data_set) > 0:
             return round(sum(data_set) / len(data_set), 2)
         else:
             return 0
 
     def get_max(self, data_set):
-        '''
+        """
         calc the max value of the data set
         :param data_set:
         :return:
-        '''
+        """
         if len(data_set) > 0:
             return max(data_set)
         else:
             return 0
 
     def get_min(self, data_set):
-        '''
+        """
         calc the minimum value of the data set
         :param data_set:
         :return:
-        '''
+        """
         if len(data_set) > 0:
             return min(data_set)
         else:
             return 0
 
     def get_mid(self, data_set):
-        '''
+        """
         calc the mid value of the data set
         :param data_set:
         :return:
-        '''
+        """
         data_set.sort()
         # [1,4,99,32,8,9,4,5,9]
         # [1,3,5,7,9,22,54,77]

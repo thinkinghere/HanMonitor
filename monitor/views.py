@@ -33,11 +33,16 @@ def client_config(request, client_id):
 
 @csrf_exempt
 def service_report(request):
+    """
+    客户端上报信息
+    :param request:
+    :return:
+    """
     print("client data:", request.POST)
 
     if request.method == 'POST':
-        # REDIS_OBJ.set("test_alex",'hahaha')
         try:
+            """获取host service_name"""
             print('host=%s, service=%s' % (request.POST.get('client_id'), request.POST.get('service_name')))
             data = json.loads(request.POST['data'])
             # print(data)
@@ -45,6 +50,7 @@ def service_report(request):
             client_id = request.POST.get('client_id')
             service_name = request.POST.get('service_name')
             # 把数据存下来
+            # 使用data_optimization函数对数据进行优化
             data_saveing_obj = data_optimization.DataStore(client_id, service_name, data, REDIS_OBJ)
 
             # redis_key_format = "StatusData_%s_%s_latest" %(client_id,service_name)
