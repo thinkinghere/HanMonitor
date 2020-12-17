@@ -18,6 +18,12 @@ REDIS_OBJ = RedisConnection(settings).redis_pool_conn()
 
 
 def client_config(request, client_id):
+    """
+    向服务端提供配置信息
+    :param request:
+    :param client_id:
+    :return:
+    """
     config_obj = ClientHandler(client_id)
     config = config_obj.fetch_configs()
 

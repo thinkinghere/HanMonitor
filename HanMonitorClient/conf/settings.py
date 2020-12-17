@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+"""
+HostID 是在服务端配置好的
+"""
 configs = {
-    'HostID': 1,
-    "Server": "192.168.16.56",
+    'HostID': 3,
+    "Server": "127.0.0.1",
     "ServerPort": 8000,
     "urls": {
         'get_configs': ['api/client/config', 'get'],  # acquire all the services will be monitored

@@ -15,10 +15,10 @@ class ClientHandle(object):
         self.monitored_services = {}
 
     def load_latest_configs(self):
-        '''
+        """
         load the latest monitor configs from monitor server
-        :return:
-        '''
+        从服务端获取最新的配置信息
+        """
         request_type = settings.configs['urls']['get_configs'][1]
         url = "%s/%s" % (settings.configs['urls']['get_configs'][0], settings.configs['HostID'])
         latest_configs = self.url_request(request_type, url)
@@ -30,16 +30,17 @@ class ClientHandle(object):
         start the client program forever
         :return:
         '''
-        exit_flag = False
-        config_last_update_time = 0
+        exit_flag = False  # 退出标志位
+        config_last_update_time = 0  # 最后配置文件更新时间
 
         while not exit_flag:
+            # ConfigUpdateInterval 默认是5分钟， 当前你时间 - 最后一次的更新时间 与300比较
             if time.time() - config_last_update_time > settings.configs['ConfigUpdateInterval']:
                 self.load_latest_configs()  # 获取最新的监控配置信息
                 print("Loaded latest config:", self.monitored_services)
-                config_last_update_time = time.time()
-            # start to monitor services
+                config_last_update_time = time.time()  # 更新config_last_update_time
 
+            # start to monitor services
             for service_name, val in self.monitored_services['services'].items():
                 if len(val) == 2:  # means it's the first time to monitor
                     self.monitored_services['services'][service_name].append(0)
