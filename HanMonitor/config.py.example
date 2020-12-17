@@ -1,0 +1,10 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+MysqlConfig = {
+    "HOST": "127.0.0.1",
+    "PORT": 3306,
+    "USER": "root",
+    "PASSWORD": "",
+    "NAME": " ",
+}
