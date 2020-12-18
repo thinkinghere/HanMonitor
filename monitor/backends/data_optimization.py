@@ -58,36 +58,37 @@ class DataStore(object):
         print("\033[42;1m---service data-----------------------\033[0m")
         # print( self.client_id,self.service_name,self.data)
         if self.data['status'] == 0:  # service data is valid
-            for key, data_series_val in settings.STATUS_DATA_OPTIMIZATION.items():
+            for key, data_series_val in settings.STATUS_DATA_OPTIMIZATION.items():  # 'latest': [0, 20],
                 # data_series_optimize_interval 是时间间隔， max_data_point 是最大存储的点的数量
                 data_series_optimize_interval, max_data_point = data_series_val  # 'latest': [0, 20]
-                data_series_key_in_redis = "StatusData_%s_%s_%s" % (self.client_id, self.service_name, key)  # 定义存储到Redis中的数据的格式
+                # 定义存储到Redis中的数据的格式 StatusData_1_CpuMonitor_latest
+                data_series_key_in_redis = "StatusData_%s_%s_%s" % (self.client_id, self.service_name, key)
                 # print(data_series_key_in_redis,data_series_val)
-                last_point_from_redis = self.redis_conn_obj.lrange(data_series_key_in_redis, -1, -1)
+                last_point_from_redis = self.redis_conn_obj.lrange(data_series_key_in_redis, -1, -1)  # 取出列表中最左侧是值
                 if not last_point_from_redis:  # this key is not exist in redis
                     # 第一次汇报时会执行这段
                     # so initialize a new key ,the first data point in the data set will only be used to identify that when  \
                     # the data got saved last time
+                    # 插入一个空的数据和最后的时间戳 后面会被自动删除
                     self.redis_conn_obj.rpush(data_series_key_in_redis, json.dumps([None, time.time()]))
-
                 if data_series_optimize_interval == 0:  # this dataset is for unoptimized data, only the latest data no need to be optimized
+                    # 0代表不需要优化，直接存 这个列表中保存的都是最新的数据
                     self.redis_conn_obj.rpush(data_series_key_in_redis, json.dumps([self.data, time.time()]))
-                    # 不需要优化，直接存
                 else:  # data might needs to be optimized
                     # print("*****>>",self.redis_conn_obj.lrange(data_series_key_in_redis,-2,-1))
                     last_point_data, last_point_save_time = \
                         json.loads(self.redis_conn_obj.lrange(data_series_key_in_redis, -1, -1)[0].decode())
 
+                    # 当前时间-最后插入数据的时间 > 该服务的时间间隔
                     if time.time() - last_point_save_time >= data_series_optimize_interval:  # reached the data point update interval ,
                         lastest_data_key_in_redis = "StatusData_%s_%s_latest" % (self.client_id, self.service_name)
                         print("calulating data for key:\033[31;1m%s\033[0m" % data_series_key_in_redis)
                         # 最近n分钟的数据 已经取到了,放到了data_set里
 
-                        data_set = self.get_data_slice(lastest_data_key_in_redis,
-                                                       data_series_optimize_interval)  # 拿到要优化的数据
+                        data_set = self.get_data_slice(lastest_data_key_in_redis, data_series_optimize_interval)  # 拿到要优化的数据
                         print('--------------------------len dataset :', len(data_set))
                         if len(data_set) > 0:
-                            # 接下来拿这个data_set交给下面这个方法,让它算出优化的结果 来
+                            # 接下来拿这个data_set交给下面这个方法,让它算出优化的结果
                             optimized_data = self.get_optimized_data(data_series_key_in_redis, data_set)
                             if optimized_data:
                                 self.save_optimized_data(data_series_key_in_redis, optimized_data)
@@ -110,6 +111,7 @@ class DataStore(object):
     def get_optimized_data(self, data_set_key, raw_service_data):
         """
         calculate out avg,max,min,mid value from raw service data set
+        计算出平均值 最大值 最小值 中间值
         :param data_set_key: where the optimized data needed to save to in redis db
         :param raw_service_data: raw service data data list
         :return:
@@ -124,6 +126,7 @@ class DataStore(object):
             for key in service_data_keys:
                 optimized_dic[key] = []
             # optimized_dic = optimized_dic.fromkeys(first_service_data_point,[])
+            # 使用deepcopy生成一份临时数据
             tmp_data_dic = copy.deepcopy(optimized_dic)  # 为了临时存最近n分钟的数据 ,把它们按照每个指标 都 搞成一个一个列表 ,来存最近N分钟的数据
             print("tmp data dic:", tmp_data_dic)
             for service_data_item, last_save_time in raw_service_data:  # loop 最近n分钟的数据
@@ -224,6 +227,7 @@ class DataStore(object):
         data_set.sort()
         # [1,4,99,32,8,9,4,5,9]
         # [1,3,5,7,9,22,54,77]
+        # 切片获取中间的值
         if len(data_set) > 0:
             return data_set[int(len(data_set) / 2)]
         else:
