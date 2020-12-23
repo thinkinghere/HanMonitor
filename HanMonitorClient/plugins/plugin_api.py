@@ -3,6 +3,11 @@ from __future__ import unicode_literals
 
 from linux import sysinfo, load, cpu_mac, cpu, memory, network, host_alive
 
+"""
+    插件名字和调用函数的对应关系
+    反射
+"""
+
 
 def LinuxCpuPlugin():
     return cpu.monitor()

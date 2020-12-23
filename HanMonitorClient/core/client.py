@@ -69,7 +69,7 @@ class ClientHandle(object):
         '''
         plugin_name = val[0]
         if hasattr(plugin_api, plugin_name):
-            func = getattr(plugin_api, plugin_name)
+            func = getattr(plugin_api, plugin_name)  # 反射
             plugin_callback = func()
             # print("--monitor result:",plugin_callback)
 

@@ -10,9 +10,9 @@ configs = {
     "ServerPort": 8000,
     "urls": {
         'get_configs': ['api/client/config', 'get'],  # acquire all the services will be monitored
-        'service_report': ['api/client/service/report/', 'post'],
+        'service_report': ['api/client/service/report/', 'post'], # report data to monitor
 
     },
     'RequestTimeout': 30,
-    'ConfigUpdateInterval': 300,  # 5 mins as default
+    'ConfigUpdateInterval': 300,  # 5 mins as default 5mins 更新一次配置
 }

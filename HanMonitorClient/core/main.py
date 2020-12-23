@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from core import client
 
 
-class command_handler(object):
+class CommandHandler(object):
 
     def __init__(self, sys_args):
         self.sys_args = sys_args
