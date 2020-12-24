@@ -23,10 +23,12 @@ def monitor(frist_invoke=1):
             value_dic[key] = value
 
         if monitor_dic['SwapUsage'] == 'percentage':
+            # 使用百分比
             value_dic['SwapUsage_p'] = str(100 - int(value_dic['SwapFree']) * 100 / int(value_dic['SwapTotal']))
         # real SwapUsage value
         value_dic['SwapUsage'] = int(value_dic['SwapTotal']) - int(value_dic['SwapFree'])
 
+        # 已经使用的内存total - free - buffer - cache
         MemUsage = int(value_dic['MemTotal']) - (
                 int(value_dic['MemFree']) + int(value_dic['Buffers']) + int(value_dic['Cached']))
         if monitor_dic['MemUsage'] == 'percentage':

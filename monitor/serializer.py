@@ -29,6 +29,8 @@ class ClientHandler(object):
                     # 生成客户端的配置文件
                     # 每个服务有对应的插件的名字 时间间隔
                     # 返回的json格式
+                    # 这里没有添加service index中的指标信息，目前是把插件中的指标全部report并存储了
+                    # 后期页面上可以根据指定的指标进行筛选
                     """
                     {
                         'services': {

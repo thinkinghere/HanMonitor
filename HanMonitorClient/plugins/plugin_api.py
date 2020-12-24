@@ -14,6 +14,7 @@ def LinuxCpuPlugin():
 
 
 def host_alive_check():
+    # 查看主机是否存活
     return host_alive.monitor()
 
 
