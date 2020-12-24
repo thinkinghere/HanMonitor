@@ -39,7 +39,6 @@ def service_report(request):
     :return:
     """
     print("client data:", request.POST)
-
     if request.method == 'POST':
         try:
             """获取host service_name"""
@@ -59,5 +58,5 @@ def service_report(request):
 
         except IndexError as e:
             print('----->err:', e)
-
-    return HttpResponse(json.dumps("---report success---"))
+    res_data = "client:{}, host:{} ---report success---".format(request.POST.get('client_id'), request.META.get("REMOTE_ADDR"))
+    return HttpResponse(json.dumps(res_data))

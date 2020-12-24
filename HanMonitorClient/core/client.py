@@ -8,6 +8,7 @@ import urllib2
 import json
 import threading
 from plugins import plugin_api
+import requests
 
 
 class ClientHandle(object):
@@ -20,10 +21,20 @@ class ClientHandle(object):
         从服务端获取最新的配置信息
         """
         request_type = settings.configs['urls']['get_configs'][1]
-        url = "%s/%s" % (settings.configs['urls']['get_configs'][0], settings.configs['HostID'])
-        latest_configs = self.url_request(request_type, url)
-        latest_configs = json.loads(latest_configs)
-        self.monitored_services.update(latest_configs)
+        path = "%s/%s" % (settings.configs['urls']['get_configs'][0], settings.configs['HostID'])
+        server = settings.configs['Server']
+        server_port = settings.configs['ServerPort']
+        url = 'http://{}:{}/{}'.format(server, server_port, path)
+        print 'Request URL is: ', url
+        # latest_configs = self.url_request(request_type, url)
+        # latest_configs = json.loads(latest_configs)
+        # self.monitored_services.update(latest_configs)
+        if request_type.lower() == 'get':
+            timeout = settings.configs['RequestTimeout']
+            r = requests.get(url, timeout=timeout)
+            if r.status_code == 200:
+                latest_configs = r.json()
+                self.monitored_services.update(latest_configs)
 
     def forever_run(self):
         '''
@@ -36,6 +47,7 @@ class ClientHandle(object):
         while not exit_flag:
             # ConfigUpdateInterval 默认是5分钟， 当前你时间 - 最后一次的更新时间 与300比较
             if time.time() - config_last_update_time > settings.configs['ConfigUpdateInterval']:
+                print "settings.configs['ConfigUpdateInterval']", settings.configs['ConfigUpdateInterval']
                 self.load_latest_configs()  # 获取最新的监控配置信息
                 print("Loaded latest config:", self.monitored_services)
                 config_last_update_time = time.time()  # 更新config_last_update_time
@@ -46,16 +58,18 @@ class ClientHandle(object):
                     self.monitored_services['services'][service_name].append(0)
                     # 为什么是0， 因为为了保证第一次肯定触发监控这个服务
                 monitor_interval = val[1]
-                last_invoke_time = val[2]  # 0
+                last_invoke_time = val[2]  # 0,上面添加的0
                 if time.time() - last_invoke_time > monitor_interval:  # needs to run the plugin
-                    print(last_invoke_time, time.time())
+                    # print(last_invoke_time, time.time())
                     self.monitored_services['services'][service_name][2] = time.time()  # 更新此服务最后一次监控的时间
                     # start a new thread to call each monitor plugin
+                    # 使用多线程执行插件
                     t = threading.Thread(target=self.invoke_plugin, args=(service_name, val))
                     t.start()
                     print("Going to monitor [%s]" % service_name)
 
                 else:
+                    # 打印下一次插件执行的时间
                     print("Going to monitor [%s] in [%s] secs" % (service_name,
                                                                   monitor_interval - (time.time() - last_invoke_time)))
 
@@ -67,23 +81,22 @@ class ClientHandle(object):
         :param val: [pulgin_name,monitor_interval,last_run_time]
         :return:
         '''
-        plugin_name = val[0]
-        if hasattr(plugin_api, plugin_name):
+        plugin_name = val[0]  # [u'LinuxLoadPlugin', 60] 获取插件的名字
+        if hasattr(plugin_api, plugin_name):  # 从plugin_api找插件的名字
             func = getattr(plugin_api, plugin_name)  # 反射
-            plugin_callback = func()
+            plugin_callback = func()  # 执行插件返回结果数据
             # print("--monitor result:",plugin_callback)
-
             report_data = {
                 'client_id': settings.configs['HostID'],
                 'service_name': service_name,
                 'data': json.dumps(plugin_callback)
             }
 
-            request_action = settings.configs['urls']['service_report'][1]
-            request_url = settings.configs['urls']['service_report'][0]
+            request_action = settings.configs['urls']['service_report'][1]  # report url method
+            request_url = settings.configs['urls']['service_report'][0]  # report url path
 
             # report_data = json.dumps(report_data)
-            print('---report data:', report_data)
+            print(val[0], '---report data:', report_data)
             self.url_request(request_action, request_url, params=report_data)
         else:
             print("\033[31;1mCannot find service [%s]'s plugin name [%s] in plugin_api\033[0m" % (

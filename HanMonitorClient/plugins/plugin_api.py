@@ -30,7 +30,7 @@ def LinuxMemoryPlugin():
     return memory.monitor()
 
 
-def get_linux_load():
+def LinuxLoadPlugin():
     return load.monitor()
 
 

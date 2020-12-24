@@ -30,7 +30,7 @@ def monitor():
     return value_dic
 
 
-print(monitor())
+# print(monitor())
 
 if __name__ == '__main__':
     test_res = (0, ' 10:15:03 up 5 days,  5:24,  3 users,  load average: 0.00, 0.01, 0.05')
